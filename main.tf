@@ -18,6 +18,10 @@ variable "env_prefix" {
 
 }
 
+variable "instance_type" {
+
+}
+
 
 
 
@@ -78,7 +82,7 @@ resource "aws_security_group" "myapp-sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["78.109.71.102/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
@@ -98,6 +102,34 @@ resource "aws_security_group" "myapp-sg" {
     Name = "${var.env_prefix}-sg"
 
   }
+}
+
+data "aws_ami" "latest-linux-image" {
+  most_recent = true
+  owners      = ["137112412989"]
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-kernel-*-gp2"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+output "aws_ami_id" {
+  value = data.aws_ami.latest-linux-image.id
+}
+
+resource "aws_instance" "myapp-server" {
+  ami                         = data.aws_ami.latest-linux-image.id
+  instance_type               = var.instance_type
+  subnet_id                   = aws_subnet.myapp-subnet.id
+  vpc_security_group_ids      = [aws_security_group.myapp-sg.id]
+  availability_zone           = var.availability_zone
+  associate_public_ip_address = true
+
 }
 
 
