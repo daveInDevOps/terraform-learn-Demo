@@ -33,10 +33,34 @@ resource "aws_subnet" "myapp-subnet" {
   cidr_block = var.subnet_cidr_block
   availability_zone = var.availability_zone
   tags = {
-    Name: "${var.env_prefix}"
+    Name: "${var.env_prefix}-subnet"
   }
 }
 
+
+resource "aws_internet_gateway" "myapp-igw" {
+  vpc_id = aws_vpc.myapp-vpc.id
+
+   tags = {
+    Name = "${var.env_prefix}-igw"
+
+ }
+}
+
+resource "aws_route_table" "myapp-route-table" {
+  vpc_id = aws_vpc.myapp-vpc.id
+
+  route {
+     cidr_block = "0.0.0.0/0"
+     gateway_id = aws_internet_gateway.myapp-igw.id
+  }
+
+  tags = {
+    Name = "${var.env_prefix}-rt"
+
+  }
+
+}
 
 
 
